@@ -1,0 +1,1476 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark light" />
+    <title>IT Snow: ServiceNow tickets, comments and approvals in Claude Desktop</title>
+    <meta name="description" content="Work your ServiceNow tickets from Claude, through the Okta session you already have. No API account, no OAuth client, no admin ticket." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://wpp-jamie-mills.github.io/it-snow-site/" />
+    <meta property="og:title" content="IT Snow: ServiceNow tickets, comments and approvals in Claude Desktop" />
+    <meta property="og:description" content="Work your ServiceNow tickets from Claude, through the Okta session you already have. No API account, no OAuth client, no admin ticket." />
+    <meta property="og:image" content="https://wpp-jamie-mills.github.io/it-snow-site/assets/og.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="site-build" content="8d56511a54ccd57658cca1a8c64d52bffbfbd6fe" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2032%2032%27%3E%3Crect%20width%3D%2732%27%20height%3D%2732%27%20rx%3D%277%27%20fill%3D%27%230b1020%27%2F%3E%3Crect%20x%3D%276%27%20y%3D%279%27%20width%3D%2720%27%20height%3D%2714%27%20rx%3D%272%27%20fill%3D%27none%27%20stroke%3D%27%23f2f2f2%27%20stroke-width%3D%272.2%27%2F%3E%3Ccircle%20cx%3D%276%27%20cy%3D%2716%27%20r%3D%271.4%27%20fill%3D%27%230b1020%27%2F%3E%3Ccircle%20cx%3D%2726%27%20cy%3D%2716%27%20r%3D%271.4%27%20fill%3D%27%230b1020%27%2F%3E%3Ccircle%20cx%3D%2723.5%27%20cy%3D%2719.5%27%20r%3D%272.6%27%20fill%3D%27%233b7bea%27%2F%3E%3C%2Fsvg%3E" />
+    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+    <link rel="alternate" type="text/markdown" href="llms.txt" />
+    <link
+      rel="preload"
+      href="fonts/InstrumentSerif-Regular.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="fonts/Satoshi-Variable.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <style>
+      @font-face {
+        font-family: "Instrument Serif";
+        src: url("fonts/InstrumentSerif-Regular.woff2") format("woff2");
+        font-weight: 400;
+        font-style: normal;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "Satoshi";
+        src: url("fonts/Satoshi-Variable.woff2") format("woff2");
+        font-weight: 300 900;
+        font-style: normal;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "IBM Plex Mono";
+        src: url("fonts/IBMPlexMono-Regular.woff2") format("woff2");
+        font-weight: 400;
+        font-style: normal;
+        font-display: swap;
+      }
+
+      /* Tokens: shadcn/ui semantic names. Dark is the primary direction; light follows the system setting. */
+      :root {
+        color-scheme: dark;
+        --radius: 0.625rem;
+        --background: oklch(0.12 0.003 260);
+        --foreground: oklch(0.955 0.005 250);
+        --card: oklch(0.165 0.006 260);
+        --card-foreground: oklch(0.955 0.005 250);
+        --popover: oklch(0.18 0.006 260);
+        --popover-foreground: oklch(0.955 0.005 250);
+        --primary: oklch(0.955 0.004 90);
+        --primary-foreground: oklch(0.17 0.004 260);
+        --secondary: oklch(0.22 0.007 260);
+        --secondary-foreground: oklch(0.94 0.005 250);
+        --muted: oklch(0.22 0.007 260);
+        --muted-foreground: oklch(0.71 0.012 250);
+        --accent: oklch(0.24 0.025 255);
+        --accent-foreground: oklch(0.82 0.11 255);
+        --border: oklch(0.9 0.01 250 / 0.14);
+        --input: oklch(0.9 0.01 250 / 0.2);
+        --ring: oklch(0.72 0.12 255);
+        --success: oklch(0.77 0.14 155);
+        --success-foreground: oklch(0.16 0.04 155);
+        --code: oklch(0.105 0.004 260);
+        --code-foreground: oklch(0.89 0.009 250);
+        --code-muted: oklch(0.7 0.012 250);
+        --code-border: oklch(0.9 0.01 250 / 0.12);
+        --highlight: oklch(1 0 0 / 0.035);
+        --sheen: oklch(1 0 0 / 0.025);
+        --shadow-raised: 0 24px 48px -24px oklch(0 0 0 / 0.7);
+
+        --font-display: "Instrument Serif", ui-serif, Georgia, "Times New Roman", serif;
+        --font-sans:
+          "Satoshi", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+        --radius-sm: calc(var(--radius) * 0.6);
+        --radius-md: calc(var(--radius) * 0.8);
+        --radius-lg: var(--radius);
+        --radius-xl: calc(var(--radius) * 1.4);
+        --radius-2xl: calc(var(--radius) * 1.8);
+        --ease: cubic-bezier(0.16, 1, 0.3, 1);
+        --rail: 78rem;
+        --gutter: clamp(1rem, 0.6rem + 1.8vw, 2rem);
+      }
+      @media (prefers-color-scheme: light) {
+        :root {
+          color-scheme: light;
+          --background: oklch(0.965 0.004 90);
+          --foreground: oklch(0.17 0.004 260);
+          --card: oklch(0.995 0.002 90);
+          --card-foreground: oklch(0.17 0.004 260);
+          --popover: oklch(0.995 0.002 90);
+          --popover-foreground: oklch(0.17 0.004 260);
+          --primary: oklch(0.17 0.004 260);
+          --primary-foreground: oklch(0.975 0.003 90);
+          --secondary: oklch(0.925 0.004 100);
+          --secondary-foreground: oklch(0.22 0.004 260);
+          --muted: oklch(0.925 0.004 100);
+          --muted-foreground: oklch(0.45 0.01 255);
+          --accent: oklch(0.925 0.018 255);
+          --accent-foreground: oklch(0.34 0.14 255);
+          --border: oklch(0.84 0.006 255 / 0.75);
+          --input: oklch(0.84 0.006 255 / 0.9);
+          --ring: oklch(0.49 0.17 255);
+          --success: oklch(0.49 0.13 155);
+          --success-foreground: oklch(0.98 0.015 150);
+          --code: oklch(0.13 0.006 260);
+          --code-foreground: oklch(0.9 0.008 250);
+          --code-muted: oklch(0.72 0.012 250);
+          --code-border: oklch(0.13 0.006 260);
+          --highlight: oklch(1 0 0 / 0.6);
+          --sheen: transparent;
+          --shadow-raised: 0 24px 48px -28px oklch(0.2 0.01 260 / 0.28);
+        }
+      }
+
+      /* Base */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+        scroll-padding-top: 1.5rem;
+        -webkit-text-size-adjust: 100%;
+      }
+      body {
+        margin: 0;
+        background: var(--background);
+        color: var(--foreground);
+        font: 400 1rem/1.65 var(--font-sans);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+      }
+      :focus-visible {
+        outline: 2px solid var(--ring);
+        outline-offset: 2px;
+        border-radius: var(--radius-sm);
+      }
+      a {
+        color: inherit;
+        text-decoration: underline;
+        text-decoration-color: var(--muted-foreground);
+        text-decoration-thickness: 1px;
+        text-underline-offset: 0.2em;
+        transition: text-decoration-color 140ms var(--ease);
+      }
+      a:hover {
+        text-decoration-color: currentColor;
+      }
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+        font-weight: 600;
+        line-height: 1.15;
+        letter-spacing: -0.02em;
+        text-wrap: balance;
+      }
+      h2 {
+        font-size: clamp(1.75rem, 1.4rem + 1.2vw, 2.5rem);
+      }
+      h3 {
+        font-size: 1.1875rem;
+        letter-spacing: -0.01em;
+      }
+      p {
+        margin: 0 0 1rem;
+        text-wrap: pretty;
+      }
+      ul,
+      ol {
+        margin: 0 0 1rem;
+        padding-left: 1.35rem;
+      }
+      li {
+        margin: 0.45rem 0;
+        padding-left: 0.2rem;
+      }
+      ol > li::marker {
+        font: 400 0.8125rem var(--font-mono);
+        color: var(--muted-foreground);
+      }
+      ul > li::marker {
+        color: var(--muted-foreground);
+      }
+      strong {
+        font-weight: 600;
+      }
+      code {
+        font: 400 0.875em var(--font-mono);
+        background: var(--muted);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 0.06em 0.36em;
+        overflow-wrap: anywhere;
+      }
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+      }
+      .skip {
+        position: absolute;
+        left: var(--gutter);
+        top: 0.75rem;
+        z-index: 10;
+        padding: 0.65rem 1rem;
+        border-radius: var(--radius-md);
+        background: var(--primary);
+        color: var(--primary-foreground);
+        font-weight: 600;
+        text-decoration: none;
+        transform: translateY(-200%);
+      }
+      .skip:focus {
+        transform: none;
+      }
+      .rail {
+        max-width: var(--rail);
+        margin: 0 auto;
+        padding: 0 var(--gutter);
+      }
+      .kicker {
+        margin: 0 0 0.85rem;
+        font: 500 0.8125rem/1.4 var(--font-sans);
+        color: var(--muted-foreground);
+      }
+      .lede {
+        font-size: 1.0625rem;
+        color: var(--muted-foreground);
+        max-width: 62ch;
+      }
+
+      /* Buttons */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        min-height: 2.75rem;
+        padding: 0 1.25rem;
+        border: 1px solid transparent;
+        border-radius: var(--radius-md);
+        font: 600 0.9375rem/1 var(--font-sans);
+        text-decoration: none;
+        white-space: nowrap;
+        transition:
+          background-color 140ms var(--ease),
+          border-color 140ms var(--ease),
+          transform 140ms var(--ease);
+      }
+      .btn:hover {
+        transform: translateY(-1px);
+      }
+      .btn:active {
+        transform: none;
+      }
+      .btn-primary {
+        background: var(--primary);
+        color: var(--primary-foreground);
+        box-shadow: inset 0 1px 0 var(--highlight);
+      }
+      .btn-primary:hover {
+        background: color-mix(in oklch, var(--primary) 88%, var(--background));
+      }
+      .btn-outline {
+        border-color: var(--input);
+        color: var(--foreground);
+      }
+      .btn-outline:hover {
+        background: var(--secondary);
+      }
+
+      /* Header */
+      .site-header {
+        border-bottom: 1px solid var(--border);
+      }
+      .site-header .bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        min-height: 4rem;
+      }
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        min-height: 2.75rem;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        text-decoration: none;
+      }
+      /* The mark (BRAND_MARK, from scripts/mark.json): monochrome, its accent in the selection colour. */
+      .mark {
+        flex: none;
+        width: 1.25rem;
+        height: 1.25rem;
+        overflow: visible;
+      }
+      .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+      .nav-links li {
+        margin: 0;
+        padding: 0;
+      }
+      .nav-links a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 2.75rem;
+        padding: 0 0.75rem;
+        border-radius: var(--radius-md);
+        font-size: 0.9375rem;
+        font-weight: 500;
+        color: var(--muted-foreground);
+        text-decoration: none;
+        transition:
+          color 140ms var(--ease),
+          background-color 140ms var(--ease);
+      }
+      .nav-links a:hover {
+        color: var(--foreground);
+        background: var(--secondary);
+      }
+      .menu {
+        display: none;
+        position: relative;
+      }
+      .menu summary {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.55rem;
+        min-height: 2.75rem;
+        padding: 0 0.9rem;
+        border: 1px solid var(--input);
+        border-radius: var(--radius-md);
+        font-weight: 500;
+        font-size: 0.9375rem;
+        cursor: pointer;
+        list-style: none;
+      }
+      .menu summary::-webkit-details-marker {
+        display: none;
+      }
+      .menu summary::before {
+        content: "";
+        width: 14px;
+        height: 9px;
+        border-block: 1.5px solid currentColor;
+        background: linear-gradient(currentColor, currentColor) center / 100% 1.5px no-repeat;
+      }
+      .menu[open] summary {
+        background: var(--secondary);
+      }
+      .menu .nav-links {
+        position: absolute;
+        right: 0;
+        top: calc(100% + 0.5rem);
+        z-index: 5;
+        flex-direction: column;
+        align-items: stretch;
+        min-width: 13rem;
+        padding: 0.375rem;
+        background: var(--popover);
+        color: var(--popover-foreground);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-raised);
+      }
+      .menu .nav-links a {
+        width: 100%;
+        min-height: 2.75rem;
+        color: var(--popover-foreground);
+      }
+      @media (max-width: 760px) {
+        .site-header nav.desktop {
+          display: none;
+        }
+        .menu {
+          display: block;
+        }
+      }
+
+      /* Hero */
+      .hero {
+        display: grid;
+        align-content: center;
+        min-height: min(calc(86svh - 4rem), 52rem);
+        padding-block: clamp(3.5rem, 2rem + 6vw, 8rem);
+      }
+      .hero-grid {
+        width: 100%;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        align-items: center;
+        gap: clamp(2.5rem, 5vw, 5rem);
+      }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin: 0 0 1.5rem;
+        padding: 0.3rem 0.7rem;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: var(--card);
+        font: 500 0.8125rem/1.3 var(--font-sans);
+        color: var(--muted-foreground);
+      }
+      .hero h1 {
+        font-family: var(--font-display);
+        font-weight: 400;
+        font-size: clamp(3.25rem, 2rem + 3.7vw, 5.25rem);
+        line-height: 0.98;
+        letter-spacing: -0.022em;
+        margin-bottom: 1.5rem;
+      }
+      .hero .lede {
+        font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.25rem);
+        max-width: 40ch;
+        margin-bottom: 2rem;
+      }
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-bottom: 2rem;
+      }
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem 0;
+        margin: 0;
+        font: 400 0.8125rem var(--font-mono);
+        color: var(--muted-foreground);
+      }
+      .meta span + span::before {
+        content: "/";
+        margin: 0 0.75rem;
+        opacity: 0.5;
+      }
+
+      /* Hero object: a frame being laid out on the canvas, one layer selected. */
+      .canvas {
+        position: relative;
+        margin: 0;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-2xl);
+        background:
+          radial-gradient(circle at 1px 1px, var(--border) 1px, transparent 1.5px) 0 0 / 18px 18px,
+          linear-gradient(180deg, var(--sheen), transparent 35%),
+          var(--card);
+        box-shadow:
+          inset 0 1px 0 var(--highlight),
+          var(--shadow-raised);
+        overflow: hidden;
+      }
+      .canvas svg {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+      .f-frame {
+        fill: var(--background);
+        stroke: var(--border);
+      }
+      .f-strong {
+        fill: var(--foreground);
+        opacity: 0.85;
+      }
+      .f-surface {
+        fill: var(--secondary);
+      }
+      .f-faint {
+        fill: var(--muted-foreground);
+        opacity: 0.38;
+      }
+      .f-select {
+        fill: none;
+        stroke: var(--ring);
+        stroke-width: 1.5;
+      }
+      .f-handle {
+        fill: var(--background);
+        stroke: var(--ring);
+        stroke-width: 1.5;
+      }
+      .f-cursor {
+        fill: var(--foreground);
+        stroke: var(--background);
+        stroke-width: 1.5;
+        stroke-linejoin: round;
+      }
+
+      /* Sections */
+      .section {
+        padding-block: clamp(4.5rem, 3rem + 5vw, 8rem);
+      }
+      .section > .rail > .head {
+        margin-bottom: clamp(2rem, 1.5rem + 2vw, 3.5rem);
+      }
+      .section .head .lede {
+        margin: 1rem 0 0;
+      }
+      .rule {
+        border-top: 1px solid var(--border);
+      }
+      .dense {
+        padding-block: clamp(4rem, 3rem + 3vw, 6rem);
+      }
+
+      /* Cards */
+      .card {
+        min-width: 0;
+        padding: clamp(1.25rem, 0.9rem + 1.4vw, 2.25rem);
+        background: linear-gradient(180deg, var(--sheen), transparent 40%), var(--card);
+        color: var(--card-foreground);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-xl);
+      }
+      .card > :last-child,
+      .card > div > :last-child {
+        margin-bottom: 0;
+      }
+      .card h3 {
+        margin-bottom: 0.65rem;
+      }
+      .card .muted {
+        color: var(--muted-foreground);
+      }
+      .label {
+        margin: 0 0 0.75rem;
+        font: 500 0.8125rem var(--font-sans);
+        color: var(--muted-foreground);
+      }
+
+      /* Install */
+      .install-stack {
+        display: grid;
+        gap: 1.25rem;
+      }
+      .people {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 0 clamp(1.5rem, 1rem + 3vw, 3.5rem);
+        padding: clamp(1.25rem, 0.75rem + 2.4vw, 3rem);
+      }
+      .people .run {
+        grid-column: 1 / -1;
+      }
+      .people .run .codebox {
+        margin-bottom: 1.75rem;
+      }
+      .people .then {
+        padding-left: clamp(1.5rem, 1rem + 2vw, 3rem);
+        border-left: 1px solid var(--border);
+      }
+      .people .then ol > li {
+        margin-bottom: 0.85rem;
+      }
+      .agents {
+        display: grid;
+        grid-template-columns: minmax(0, 0.8fr) minmax(0, 2fr);
+        gap: clamp(1.5rem, 1rem + 3vw, 3.5rem);
+      }
+      .agents-body {
+        max-width: 72ch;
+      }
+
+      /* Code boxes (markup from codeBox() in build-site.mjs) */
+      .codebox {
+        margin: 0 0 1.25rem;
+        background: var(--code);
+        color: var(--code-foreground);
+        border: 1px solid var(--code-border);
+        border-radius: var(--radius-lg);
+        box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.04);
+        overflow: hidden;
+      }
+      .codebar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+        padding: 0.375rem 0.375rem 0.375rem 1rem;
+        border-bottom: 1px solid oklch(1 0 0 / 0.08);
+        font: 500 0.75rem var(--font-sans);
+        color: var(--code-muted);
+      }
+      .codebox pre {
+        margin: 0;
+        padding: 0.9rem 1rem 1rem;
+        font: 400 0.8125rem/1.7 var(--font-mono);
+        /* Keep commands on one line (scroll if needed) so a URL is never broken across lines. */
+        white-space: pre;
+        overflow-x: auto;
+        scrollbar-color: oklch(1 0 0 / 0.2) transparent;
+      }
+      .codebox pre:focus-visible {
+        outline-offset: -2px;
+      }
+      .codebox pre code {
+        font: inherit;
+        background: none;
+        border: 0;
+        padding: 0;
+        color: inherit;
+      }
+      .copy {
+        position: relative;
+        flex: none;
+        min-width: 4.75rem;
+        min-height: 2rem;
+        padding: 0 0.85rem;
+        font: 600 0.8125rem var(--font-sans);
+        color: var(--code-foreground);
+        background: oklch(1 0 0 / 0.06);
+        border: 1px solid oklch(1 0 0 / 0.14);
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        transition:
+          background-color 140ms var(--ease),
+          border-color 140ms var(--ease),
+          color 140ms var(--ease);
+      }
+      /* A 44px tall target around the compact button. */
+      .copy::after {
+        content: "";
+        position: absolute;
+        inset: -6px -4px;
+      }
+      .copy:hover {
+        background: oklch(1 0 0 / 0.11);
+        border-color: oklch(1 0 0 / 0.24);
+      }
+      .copy.done {
+        background: var(--success);
+        border-color: var(--success);
+        color: var(--success-foreground);
+      }
+
+      /* Why use it: one large card, then varied spans */
+      .bento {
+        display: grid;
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        gap: 1.25rem;
+      }
+      .bento .card {
+        display: flex;
+        flex-direction: column;
+      }
+      .bento .card p {
+        color: var(--muted-foreground);
+      }
+      .b-a {
+        grid-column: span 7;
+        grid-row: span 2;
+      }
+      .b-a h3 {
+        font-size: clamp(1.375rem, 1.2rem + 0.8vw, 1.75rem);
+        max-width: 18ch;
+      }
+      .b-b,
+      .b-c,
+      .b-d {
+        grid-column: span 5;
+      }
+      .b-e {
+        grid-column: span 7;
+      }
+      .stat {
+        margin: auto 0 0;
+        padding-top: 1.25rem;
+        font: 400 0.8125rem var(--font-mono);
+        color: var(--muted-foreground);
+      }
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin: 0.5rem 0 0;
+        padding: 0;
+        list-style: none;
+      }
+      .chips li {
+        margin: 0;
+        padding: 0.3rem 0.6rem;
+        font: 400 0.8125rem var(--font-mono);
+        background: var(--muted);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+      }
+      .b-a .chips {
+        margin-top: auto;
+        padding-top: 1.25rem;
+      }
+      .facts {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1rem;
+        margin: auto 0 0;
+        padding: 1.25rem 0 0;
+        list-style: none;
+        border-top: 1px solid var(--border);
+      }
+      .facts li {
+        margin: 0;
+        padding: 0;
+        font-size: 0.875rem;
+        color: var(--muted-foreground);
+      }
+      .facts code {
+        display: block;
+        width: fit-content;
+        margin-bottom: 0.3rem;
+        color: var(--foreground);
+      }
+
+      /* What you can do */
+      .split {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: clamp(2rem, 1rem + 4vw, 5rem);
+        align-items: start;
+      }
+      .features-copy h2 {
+        margin-bottom: 2rem;
+      }
+      .features-body > p {
+        max-width: 60ch;
+        padding-left: 1.25rem;
+        border-left: 1px solid var(--border);
+      }
+      .features-body > p strong:first-child {
+        font-size: 1.0625rem;
+      }
+      .notes {
+        color: var(--muted-foreground);
+        font-size: 0.9375rem;
+      }
+
+      /* Reference sections: a heading column beside the content */
+      .docs {
+        display: grid;
+        grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
+        gap: clamp(1.5rem, 1rem + 4vw, 5rem);
+        align-items: start;
+      }
+      .docs .head {
+        position: sticky;
+        top: 1.5rem;
+      }
+      .docs .head .lede {
+        margin: 1rem 0 0;
+        font-size: 1rem;
+      }
+      .docs-body {
+        max-width: 68ch;
+      }
+      .docs-body > ol > li,
+      .docs-body > ul > li {
+        margin-bottom: 0.85rem;
+      }
+      .rows > ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+      .rows li {
+        margin: 0;
+        padding: 1.1rem 0;
+        border-top: 1px solid var(--border);
+      }
+      .rows li:last-child {
+        border-bottom: 1px solid var(--border);
+      }
+
+      /* Tools */
+      .tool-group + .tool-group {
+        margin-top: clamp(2.5rem, 2rem + 2vw, 3.5rem);
+      }
+      .tool-group h3 {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      .count {
+        font: 400 0.8125rem var(--font-mono);
+        color: var(--muted-foreground);
+      }
+      .table-wrap {
+        overflow-x: auto;
+        margin: 0;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        background: var(--card);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9375rem;
+      }
+      th,
+      td {
+        text-align: left;
+        vertical-align: top;
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid var(--border);
+      }
+      tr:last-child td {
+        border-bottom: 0;
+      }
+      th {
+        background: var(--muted);
+        font: 500 0.8125rem var(--font-sans);
+        color: var(--muted-foreground);
+      }
+      td {
+        color: var(--muted-foreground);
+      }
+      td:first-child {
+        width: 1%;
+        white-space: nowrap;
+        color: var(--foreground);
+      }
+      td:first-child code {
+        background: none;
+        border: 0;
+        padding: 0;
+        font-size: 0.8125rem;
+        white-space: nowrap;
+      }
+      td code {
+        color: var(--foreground);
+      }
+
+      /* Closing call to action */
+      .cta {
+        display: grid;
+        grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+        align-items: end;
+        gap: 0 clamp(1.5rem, 1rem + 4vw, 5rem);
+        padding: clamp(1.5rem, 1rem + 3vw, 4rem);
+        border-radius: var(--radius-2xl);
+        box-shadow: inset 0 1px 0 var(--highlight);
+      }
+      .cta h2 {
+        font-family: var(--font-display);
+        font-weight: 400;
+        font-size: clamp(2.25rem, 1.6rem + 2.4vw, 3.75rem);
+        line-height: 1.02;
+        letter-spacing: -0.02em;
+        margin-bottom: 1rem;
+      }
+      .cta .codebox {
+        grid-column: 1 / -1;
+        margin: clamp(1.5rem, 1rem + 1.5vw, 2.5rem) 0 0;
+      }
+      .cta h2 + p,
+      .cta-note {
+        margin: 0;
+      }
+
+      footer {
+        padding-block: 3rem;
+        font-size: 0.875rem;
+        color: var(--muted-foreground);
+      }
+      footer .rail {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem 2rem;
+      }
+      footer p {
+        margin: 0;
+      }
+      footer .links a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 2.75rem;
+        margin-left: 1.25rem;
+        font-family: var(--font-mono);
+        font-size: 0.8125rem;
+      }
+
+      /* README extras: subheadings, quotes and emphasis inside rendered sections */
+      .docs-body h3,
+      .docs-body h4,
+      .features-body h3 {
+        margin: 2rem 0 0.75rem;
+      }
+      .docs-body > h3:first-child,
+      .docs-body > h4:first-child {
+        margin-top: 0;
+      }
+      h4 {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 600;
+        letter-spacing: -0.005em;
+      }
+      blockquote {
+        margin: 0 0 1rem;
+        padding: 0.85rem 1rem;
+        border-left: 2px solid var(--input);
+        border-radius: 0 var(--radius-md) var(--radius-md) 0;
+        background: var(--muted);
+        color: var(--muted-foreground);
+      }
+      blockquote > :last-child {
+        margin-bottom: 0;
+      }
+      .docs-body .codebox {
+        margin-block: 0.5rem 1.25rem;
+      }
+
+      /* Entrance: the hero copy rises in, then the canvas draws itself. */
+      @keyframes rise {
+        from {
+          opacity: 0;
+          transform: translateY(16px);
+        }
+      }
+      @keyframes appear {
+        from {
+          opacity: 0;
+          transform: translateY(6px);
+        }
+      }
+      @keyframes glide {
+        from {
+          opacity: 0;
+          transform: translate(14px, 12px);
+        }
+      }
+      .hero-copy > * {
+        animation: rise 520ms var(--ease) both;
+      }
+      .hero-copy > :nth-child(2) {
+        animation-delay: 60ms;
+      }
+      .hero-copy > :nth-child(3) {
+        animation-delay: 120ms;
+      }
+      .hero-copy > :nth-child(4) {
+        animation-delay: 180ms;
+      }
+      .hero-copy > :nth-child(5) {
+        animation-delay: 240ms;
+      }
+      .canvas {
+        animation: rise 520ms var(--ease) 120ms both;
+      }
+      .draw > * {
+        animation: appear 420ms var(--ease) both;
+        transform-box: fill-box;
+      }
+      .draw > :nth-child(1) {
+        animation-delay: 300ms;
+      }
+      .draw > :nth-child(2) {
+        animation-delay: 370ms;
+      }
+      .draw > :nth-child(3) {
+        animation-delay: 440ms;
+      }
+      .draw > :nth-child(4) {
+        animation-delay: 510ms;
+      }
+      .draw > :nth-child(5) {
+        animation-delay: 580ms;
+      }
+      .draw > :nth-child(6) {
+        animation-delay: 650ms;
+      }
+      .draw > :nth-child(7) {
+        animation-delay: 720ms;
+      }
+      .draw > :nth-child(8) {
+        animation: glide 520ms var(--ease) 820ms both;
+      }
+
+      /* Layout breakpoints */
+      @media (max-width: 1080px) {
+        .agents {
+          grid-template-columns: minmax(0, 1fr);
+          gap: 0.5rem;
+        }
+        .facts {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+      @media (max-width: 900px) {
+        .hero-grid,
+        .people,
+        .split,
+        .docs,
+        .cta {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        .hero {
+          min-height: 0;
+        }
+        .canvas {
+          max-width: 34rem;
+        }
+        .people .then {
+          padding: 1.5rem 0 0;
+          border-left: 0;
+          border-top: 1px solid var(--border);
+        }
+        .bento > .card {
+          grid-column: 1 / -1;
+          grid-row: auto;
+        }
+        .docs .head {
+          position: static;
+        }
+        .cta-note {
+          margin-top: 0.75rem;
+        }
+      }
+      /* Small screens: each tool row becomes a record, its name above its description. */
+      @media (max-width: 640px) {
+        .table-wrap table,
+        .table-wrap tbody,
+        .table-wrap tr,
+        .table-wrap td {
+          display: block;
+          width: auto;
+        }
+        .table-wrap thead {
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          overflow: hidden;
+          clip: rect(0 0 0 0);
+        }
+        .table-wrap tr {
+          padding: 0.9rem 1rem;
+          border-bottom: 1px solid var(--border);
+        }
+        .table-wrap tr:last-child {
+          border-bottom: 0;
+        }
+        .table-wrap td {
+          padding: 0;
+          border: 0;
+        }
+        .table-wrap td:first-child {
+          margin-bottom: 0.3rem;
+        }
+        td:first-child code {
+          white-space: normal;
+          overflow-wrap: anywhere;
+        }
+      }
+      @media (max-width: 560px) {
+        footer .links a {
+          margin: 0 1.25rem 0 0;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          animation-delay: 0ms !important;
+          scroll-behavior: auto !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <header class="site-header" id="top">
+      <div class="rail bar">
+        <a class="brand" href="#top"><svg class="mark" viewBox="4 4 24 24" aria-hidden="true" focusable="false"><rect x="6" y="9" width="20" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="6" cy="16" r="1.4" fill="none" stroke="currentColor" stroke-width="1"/><circle cx="26" cy="16" r="1.4" fill="none" stroke="currentColor" stroke-width="1"/><circle cx="23.5" cy="19.5" r="2.6" fill="var(--background)" stroke="var(--ring)" stroke-width="1"/></svg>IT Snow</a>
+        <!-- The two nav lists must match each other and the sections below (keep 3 to 5 links). -->
+        <nav class="desktop" aria-label="Sections">
+          <ul class="nav-links">
+            <li><a href="#install">Install</a></li>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#reference">Tools</a></li>            <li><a href="#security">Security</a></li>            <li><a href="#troubleshooting">Help</a></li>          </ul>
+        </nav>
+        <details class="menu">
+          <summary>Menu</summary>
+          <nav aria-label="Sections">
+            <ul class="nav-links">
+              <li><a href="#install">Install</a></li>
+              <li><a href="#features">Features</a></li>
+              <li><a href="#reference">Tools</a></li>              <li><a href="#security">Security</a></li>              <li><a href="#troubleshooting">Help</a></li>            </ul>
+          </nav>
+        </details>
+      </div>
+    </header>
+
+    <main id="main">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="rail hero-grid">
+          <div class="hero-copy">
+            <p class="badge">Claude Desktop extension · macOS</p>
+            <h1 id="hero-title">Work your ServiceNow tickets from Claude, through the Okta session you already have.</h1>
+            <p class="lede">No API account, no OAuth client, no admin ticket. One command installs it, and it offers its own updates.</p>
+            <div class="actions">
+              <a class="btn btn-primary" href="#install">Install</a>
+              <a class="btn btn-outline" href="#install-agents">Guide for AI agents</a>
+            </div>
+            <p class="meta">
+              <span>Version 0.3.0</span><span>33 tools</span><span>macOS · Okta SSO</span>
+            </p>
+          </div>
+          <!--
+            Hero object: one flat illustration of the product doing its job, drawn only with the f-* classes
+            (see references/design-system.md). At most 8 children of .draw; they appear in order and the last
+            one (the cursor) glides in. Replace this terminal with the project's own subject.
+          -->
+          <figure
+            class="canvas"
+            role="img"
+            aria-label="A ServiceNow ticket open beside a chat, with its comment thread and approval shown"
+          >
+            <svg
+              viewBox="0 0 520 400"
+              width="520"
+              height="400"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <g class="draw">
+                <rect class="f-frame" x="70.5" y="54.5" width="379" height="290" rx="10" />
+                <g>
+                  <circle class="f-faint" cx="94" cy="78" r="4.5" />
+                  <circle class="f-faint" cx="110" cy="78" r="4.5" />
+                  <circle class="f-faint" cx="126" cy="78" r="4.5" />
+                  <rect class="f-faint" x="214" y="74" width="92" height="8" rx="4" />
+                </g>
+                <g>
+                  <rect class="f-strong" x="92" y="108" width="10" height="10" rx="2" />
+                  <rect class="f-strong" x="110" y="109" width="168" height="8" rx="3" />
+                </g>
+                <g>
+                  <rect class="f-faint" x="110" y="130" width="238" height="7" rx="3.5" />
+                  <rect class="f-faint" x="110" y="145" width="196" height="7" rx="3.5" />
+                  <rect class="f-faint" x="110" y="160" width="252" height="7" rx="3.5" />
+                </g>
+                <rect class="f-surface" x="92" y="184" width="336" height="76" rx="8" />
+                <g>
+                  <rect class="f-strong" x="108" y="200" width="124" height="10" rx="3" />
+                  <rect class="f-faint" x="108" y="220" width="212" height="7" rx="3.5" />
+                  <rect class="f-faint" x="108" y="234" width="164" height="7" rx="3.5" />
+                  <rect class="f-strong" x="92" y="290" width="10" height="10" rx="2" />
+                  <rect class="f-strong" x="110" y="288" width="9" height="14" rx="1.5" />
+                </g>
+                <g>
+                  <rect class="f-select" x="91" y="183" width="338" height="78" />
+                  <rect class="f-handle" x="87.5" y="179.5" width="7" height="7" />
+                  <rect class="f-handle" x="425.5" y="179.5" width="7" height="7" />
+                  <rect class="f-handle" x="87.5" y="257.5" width="7" height="7" />
+                  <rect class="f-handle" x="425.5" y="257.5" width="7" height="7" />
+                </g>
+                <path
+                  class="f-cursor"
+                  d="M398 248 l0 22 l5.5 -5 l4 9 l4 -1.8 l-4 -8.8 l7.5 -0.4 z"
+                />
+              </g>
+            </svg>
+          </figure>
+        </div>
+      </section>
+
+      <section id="install" class="section rule" aria-labelledby="install-title">
+        <div class="rail">
+          <div class="head">
+            <p class="kicker">Install</p>
+            <h2 id="install-title">One command, then a quick setup</h2>
+            <p class="lede">
+              The installer downloads the latest extension, verifies its SHA-256 before anything changes, and opens Claude Desktop's install dialog. Click Install; your settings and your sign-in are kept.
+            </p>
+          </div>
+          <div class="install-stack">
+            <article class="card people" id="install-people" aria-labelledby="people-title">
+              <div class="run">
+                <h3 id="people-title">For people</h3>
+                <p class="muted">Open Terminal and run:</p>
+                <div class="codebox"><div class="codebar"><span>Terminal</span><button class="copy" type="button" aria-label="Copy install command">Copy</button></div><pre tabindex="0"><code>curl -fsSL https://wpp-jamie-mills.github.io/it-snow-site/install.sh | bash</code></pre></div>
+              </div>
+              <p class="muted">
+                You need macOS with Google Chrome and Claude Desktop 2.7032.0 or later. You don't need Node.js, an API account or an admin ticket. After that it keeps itself up to date: Claude offers each new
+                version on an update card in the chat, and it is installed only when you click Update now and then
+                Install.              </p>
+                          </article>
+
+            <article class="card agents" id="install-agents" aria-labelledby="agents-title">
+              <div>
+                <h3 id="agents-title">For AI agents</h3>
+                <p class="muted">
+                  Use these steps if you are an AI agent installing this for a user.
+                </p>
+                <p class="muted">A plain-text version is in <a href="llms.txt">llms.txt</a>.</p>
+              </div>
+              <div class="agents-body">
+                <ol>
+                  <li>
+                    <strong>Check the machine.</strong> Continue only if uname -s prints Darwin and /Applications/Google Chrome.app exists; otherwise tell the user what is missing.
+                  </li>
+                  <li>
+                    <strong>Run the installer</strong> with this one command. It downloads the release,
+                    checks its SHA-256 (nothing runs before the check passes) and installs it. With no
+                    terminal it never prompts and answers no to every question. It exits non-zero, with
+                    the reason on stderr, if anything fails.
+                  </li>
+                </ol>
+                <div class="codebox"><div class="codebar"><span>Terminal</span><button class="copy" type="button" aria-label="Copy install command for agents">Copy</button></div><pre tabindex="0"><code>curl -fsSL https://wpp-jamie-mills.github.io/it-snow-site/install.sh | IT_SNOW_INSTALL_TTY=/dev/null bash -s -- --no-wait</code></pre></div>
+                <ol start="3">
+                  <li>
+                    <strong>Verify.</strong> Run the installer again with <code>--status</code> (after
+                    <code>bash -s --</code>). It should print Chrome: present and either the signed-in user or Next: sign in from the chat.
+                  </li>
+                                    <li>
+                    <strong>Updates look after themselves.</strong> Once a day the extension checks for a new version
+                    and Claude shows the user an update card. Only the user can click Update now and then Install;
+                    to update straight away, run the install command again.
+                  </li>
+                                  </ol>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- Why use it: one large card, then varied spans. Write the copy from the README's real benefits. -->
+      <section id="why" class="section rule" aria-labelledby="why-title">
+        <div class="rail">
+          <div class="head">
+            <p class="kicker">Why use it</p>
+            <h2 id="why-title">Your queue, your tickets, your approvals — answered</h2>
+          </div>
+          <div class="bento">
+            <article class="card b-a">
+              <h3>Ask once, get the whole picture</h3>
+              <p>Open requests, their RITMs, who is on them and what is waiting for you, read live from ServiceNow. No portal tabs and no copy-paste.</p>
+              <ul class="chips" aria-label="Available tools"><li>now_status</li><li>now_login</li><li>now_whoami</li><li>now_query</li><li>now_count</li><li>now_get_record</li><li>now_search</li><li>now_my_requests</li><li>now_my_items</li><li>now_my_incidents</li><li>now_my_approvals</li><li>now_my_open_work</li><li>now_request_details</li><li>now_comments</li><li>now_attachments</li><li>now_attachment_get</li><li>now_kb_search</li><li>now_kb_article</li><li>now_catalog_search</li><li>now_catalog_item</li><li>now_find_person</li><li>now_my_assets</li><li>check_for_updates</li><li>install_update</li><li>snooze_update</li></ul>
+            </article>
+            <article class="card b-b">
+              <h3>Read the record, not a summary</h3>
+              <p>Comments, attachments, approvals and a catalog item's variables are all one tool call away — the same data the desk sees.</p>
+                          </article>
+            <article class="card b-c">
+              <h3>Write only what you meant</h3>
+              <p>Three writes are enabled: file an incident, comment, resolve. Everything else is a dry run until you confirm, and every result says which fields actually changed.</p>
+            </article>
+            <article class="card b-d">
+              <h3>No API account, no ticket to IT</h3>
+              <p>It rides the Okta session you already have in a dedicated Chrome profile, so there is no OAuth client to register and no service account to request.</p>
+            </article>
+            <article class="card b-e">
+              <h3>Local, signed and verified</h3>
+              <p>The extension comes from GitHub Pages, its SHA-256 is checked before install, and the session never leaves your Mac.</p>
+              <ul class="facts">
+                <li><code>SHA-256</code>checked before anything is installed</li>
+                <li><code>~/Library/Application Support/it-snow</code>the Chrome profile that holds your session</li>
+                <li><code>--status</code>see what is installed, and what is left to do</li>
+              </ul>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="features" class="section rule" aria-labelledby="features-title">
+        <div class="rail split">
+          <div class="features-copy">
+            <p class="kicker">Features</p>
+            <h2 id="features-title">What you can do</h2>
+            <div class="features-body"><p>IT Snow puts your ServiceNow queue, knowledge base and catalog inside the conversation. Ask what is open on you, what an approval is waiting for, which request is stuck, or whether anyone has already reported the thing you are about to report.</p>
+<ul><li><strong>Your work</strong> — requests, requested items (RITMs), incidents and approvals, all in one answer</li><li><strong>Any record</strong> — by number or <code>sys_id</code>, from any table you can read, with structured filters and paging</li><li><strong>The conversation</strong> — read Additional comments and Work notes, and add a comment</li><li><strong>Files</strong> — list attachments and download one to disk</li><li><strong>Knowledge</strong> — search published articles and read the full body</li><li><strong>Catalog</strong> — find an item and see the variables it needs before ordering</li><li><strong>People</strong> — look up a colleague, their title, department and manager</li><li><strong>Assets</strong> — the hardware assigned to you</li><li><strong>Writes</strong> — file an incident, comment on a ticket, resolve one</li></ul></div>
+          </div>
+          <div>
+            
+            <div class="notes"><p>IT Snow uses a dedicated Chrome profile, not an API credential. The first time a tool needs ServiceNow, a Chrome window opens on the portal: complete Okta (FastPass or Touch ID) there, then the session is kept in the profile and reused on every start.</p>
+<p><code>now_login</code> shows a sign-in card in the chat. Its button opens Chrome again, the card polls until the sign-in completes, and then reports who is signed in. Nothing is ever typed into the card.</p>
+<p>The window must stay alive. Minimise it if you like, but quitting Chrome ends the session; call <code>now_login</code> to start again.</p></div>
+          </div>
+        </div>
+      </section>
+
+            <section id="configuration" class="section rule" aria-labelledby="configuration-title">
+        <div class="rail docs">
+          <div class="head">
+            <p class="kicker">Configuration</p>
+            <h2 id="configuration-title">Configuration</h2>
+            <p class="lede">Environment overrides for the instance, the write scope and the window.</p>
+          </div>
+          <div class="docs-body"><div class="table-wrap"><table><thead><tr><th>Setting</th><th>Default</th><th>Meaning</th></tr></thead><tbody><tr><td><code>IT_SNOW_URL</code></td><td><code>https://prodwpp.service-now.com</code></td><td>Instance base URL</td></tr><tr><td><code>IT_SNOW_PORTAL</code></td><td><code>/sp</code></td><td>Portal path used to pick up the session</td></tr><tr><td><code>IT_SNOW_READONLY</code></td><td><code>false</code></td><td>Refuse all writes</td></tr><tr><td><code>IT_SNOW_EXTRA_WRITES</code></td><td><code>false</code></td><td>Enable approvals, orders, patches, raw writes</td></tr><tr><td><code>IT_SNOW_HIDE</code></td><td><code>minimize</code></td><td>Idle window: <code>minimize</code>, <code>offset</code>, <code>none</code></td></tr><tr><td><code>IT_SNOW_LOGIN_BOUNDS</code></td><td><code>160,120,1200,820</code></td><td>Where the window appears for sign-in</td></tr><tr><td><code>IT_SNOW_HEADLESS</code></td><td><code>false</code></td><td>Headless cannot complete Okta sign-in</td></tr><tr><td><code>IT_SNOW_EXECUTABLE</code></td><td>autodetected</td><td>Chrome binary</td></tr><tr><td><code>IT_SNOW_DATA_DIR</code></td><td>OS app-data dir</td><td>Profile, <code>daemon.json</code>, <code>writes.jsonl</code></td></tr><tr><td><code>IT_SNOW_CHECK_UPDATES</code></td><td>set by the extension</td><td>Daily update check</td></tr></tbody></table></div></div>
+        </div>
+      </section>
+      
+            <section id="reference" class="section dense rule" aria-labelledby="reference-title">
+        <div class="rail">
+          <div class="head">
+            <p class="kicker">Reference</p>
+            <h2 id="reference-title">Tools</h2>
+            <p class="lede">32 tools.</p>
+          </div>
+          <div class="tool-group">
+            <p>33 tools. ✅ = enabled write, 🔒 = behind Extra write tools.</p>
+<div class="table-wrap"><table><thead><tr><th>Tool</th><th>What it does</th></tr></thead><tbody><tr><td><code>now_status</code></td><td>Session state, Chrome presence, signed-in user</td></tr><tr><td><code>now_login</code></td><td>Sign-in card (opens Chrome on the portal)</td></tr><tr><td><code>now_whoami</code></td><td>Your ServiceNow profile</td></tr><tr><td><code>now_query</code></td><td>Structured query: filters, ordering, fields, paging</td></tr><tr><td><code>now_count</code></td><td>Aggregate count, optionally grouped</td></tr><tr><td><code>now_get_record</code></td><td>One record, or up to 50 in one call, by number or <code>sys_id</code>; the table is inferred from the prefix</td></tr><tr><td><code>now_search</code></td><td>Full-text search across tasks</td></tr><tr><td><code>now_my_requests</code></td><td>Catalog requests (<code>scope=caller|opened|watching|assigned|all</code>)</td></tr><tr><td><code>now_my_items</code></td><td>Requested items / RITMs (<code>scope</code>)</td></tr><tr><td><code>now_my_incidents</code></td><td>Incidents you called in, opened, watch or are assigned (<code>scope</code>)</td></tr><tr><td><code>now_my_approvals</code></td><td>Approvals waiting on you</td></tr><tr><td><code>now_my_open_work</code></td><td>Open incidents, requests, RITMs and approvals in one answer (scope-aware)</td></tr><tr><td><code>now_request_details</code></td><td>A request with its RITMs, approvals and comments</td></tr><tr><td><code>now_comments</code></td><td>Journal: Additional comments and Work notes</td></tr><tr><td><code>now_add_comment</code> ✅</td><td>Append an Additional comment</td></tr><tr><td><code>now_attachments</code></td><td>Files on a record</td></tr><tr><td><code>now_attachment_get</code></td><td>Download one file</td></tr><tr><td><code>now_kb_search</code></td><td>Search knowledge articles</td></tr><tr><td><code>now_kb_article</code></td><td>Read one article</td></tr><tr><td><code>now_catalog_search</code></td><td>Find catalog items</td></tr><tr><td><code>now_catalog_item</code></td><td>Item plus its variables</td></tr><tr><td><code>now_find_person</code></td><td>User by name, email or username</td></tr><tr><td><code>now_my_assets</code></td><td>Hardware assigned to you</td></tr><tr><td><code>now_create_incident</code> ✅</td><td>File an incident (body becomes the first comment)</td></tr><tr><td><code>now_resolve_incident</code> ✅</td><td>Resolve with close code and notes</td></tr><tr><td><code>now_update_record</code> 🔒</td><td>Patch any record</td></tr><tr><td><code>now_approve</code> 🔒</td><td>Approve or reject</td></tr><tr><td><code>now_order_catalog_item</code> 🔒</td><td>Place a catalog order</td></tr><tr><td><code>now_api</code> 🔒</td><td>Raw <code>/api/...</code> escape hatch</td></tr><tr><td><code>check_for_updates</code></td><td>Show the update card</td></tr><tr><td><code>install_update</code></td><td>Card only: download, verify, open Desktop&#39;s installer</td></tr><tr><td><code>snooze_update</code></td><td>Card only: don&#39;t offer this version for a week</td></tr></tbody></table></div>
+          </div>
+        </div>
+      </section>
+      
+            <section id="security" class="section rule" aria-labelledby="security-title">
+        <div class="rail docs">
+          <div class="head">
+            <p class="kicker">Security</p>
+            <h2 id="security-title">Security and privacy</h2>
+            <p class="lede">What it touches, and what it never sends anywhere.</p>
+          </div>
+          <div class="docs-body rows"><ul><li>No password is stored anywhere. The Okta session lives in a dedicated Chrome profile, exactly as it would in a browser.</li><li>The update check fetches <code>latest.version</code> from the landing page once a day; nothing about you is sent. Only <strong>Update now</strong> downloads the bundle, and its SHA-256 is verified before Claude Desktop is asked to install it.</li><li>Attachments are downloaded with the browser session&#39;s own permissions; nothing is uploaded.</li><li>Requests go only to <code>prodwpp.service-now.com</code> and the landing page. There is no telemetry.</li><li>Writes are limited to the three tools above and recorded in <code>writes.jsonl</code>.</li></ul></div>
+        </div>
+      </section>
+      
+            <section id="troubleshooting" class="section rule" aria-labelledby="troubleshooting-title">
+        <div class="rail docs">
+          <div class="head">
+            <p class="kicker">Help</p>
+            <h2 id="troubleshooting-title">Troubleshooting</h2>
+            <p class="lede">The messages you might see, and what to do about each.</p>
+          </div>
+          <div class="docs-body rows"><div class="table-wrap"><table><thead><tr><th>Symptom</th><th>Cause and fix</th></tr></thead><tbody><tr><td><code>Chrome: missing</code></td><td>Install Google Chrome, then call <code>now_status</code> again</td></tr><tr><td><code>Okta sign-in required</code></td><td>Session expired: <code>now_login</code>, complete the sign-in, retry</td></tr><tr><td>A write returns 200 but nothing changed</td><td>The field is read-only; the result&#39;s <code>ignored</code> list names it</td></tr><tr><td><code>403 User Not Authorized</code></td><td>Table or row ACL. Not a bug</td></tr><tr><td>Comments look empty in raw JSON</td><td>Read <code>display_value</code>, not <code>value</code></td></tr><tr><td>Chrome won&#39;t start</td><td>Another Chrome holds the profile: quit it, delete <code>daemon.json</code>, retry</td></tr><tr><td>Tools missing in an old chat</td><td>Open a new chat; Claude attaches tools at chat start</td></tr><tr><td>Extension shows as failed, disconnects at start-up</td><td>Versions before 0.2.2 used Playwright 1.65, which exits under Claude Desktop&#39;s built-in Node 18. Install 0.2.2 or later</td></tr><tr><td>Update card says checksum mismatch</td><td>Pages can lag a release by minutes; try again shortly</td></tr></tbody></table></div></div>
+        </div>
+      </section>
+      
+      <section class="section" aria-labelledby="cta-title">
+        <div class="rail">
+          <div class="card cta">
+            <div>
+              <h2 id="cta-title">One command to install. Updates come to you.</h2>
+              <p class="muted">No API account, no package manager, no config files.</p>
+            </div>
+            <p class="muted cta-note">
+              Installing for someone as an AI agent? Follow the
+              <a href="#install-agents">agent guide</a>.
+            </p>
+            <div class="codebox"><div class="codebar"><span>Terminal</span><button class="copy" type="button" aria-label="Copy install command">Copy</button></div><pre tabindex="0"><code>curl -fsSL https://wpp-jamie-mills.github.io/it-snow-site/install.sh | bash</code></pre></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="rule">
+      <div class="rail">
+        <p>IT Snow · generated from the project README for version 0.3.0.</p>
+        <p class="links"><a href="summary.md">summary.md</a><a href="llms.txt">llms.txt</a><a href="install.sh">install.sh</a></p>
+      </div>
+    </footer>
+
+    <div class="sr-only" role="status" id="copy-status"></div>
+    <script>
+      (function () {
+        var status = document.getElementById("copy-status");
+        function fallbackCopy(text) {
+          var area = document.createElement("textarea");
+          area.value = text;
+          area.setAttribute("readonly", "");
+          area.style.position = "fixed";
+          area.style.opacity = "0";
+          var previous = document.activeElement;
+          document.body.appendChild(area);
+          area.select();
+          var ok = false;
+          try {
+            ok = document.execCommand("copy");
+          } catch (e) {}
+          document.body.removeChild(area);
+          if (previous && previous.focus) previous.focus();
+          return ok;
+        }
+        function copyText(text) {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            return navigator.clipboard.writeText(text).then(
+              function () {
+                return true;
+              },
+              function () {
+                return fallbackCopy(text);
+              },
+            );
+          }
+          return Promise.resolve(fallbackCopy(text));
+        }
+        Array.prototype.forEach.call(document.querySelectorAll(".codebox .copy"), function (btn) {
+          var label = btn.textContent;
+          var aria = btn.getAttribute("aria-label");
+          var timer;
+          btn.addEventListener("click", function () {
+            var pre = btn.closest(".codebox").querySelector("pre");
+            copyText(pre.textContent.replace(/\n$/, "")).then(function (ok) {
+              clearTimeout(timer);
+              if (!ok) {
+                // Leave the command selected so the user can copy it with the keyboard.
+                var range = document.createRange();
+                range.selectNodeContents(pre);
+                var sel = window.getSelection();
+                sel.removeAllRanges();
+                sel.addRange(range);
+              }
+              var mac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+              btn.textContent = ok ? "Copied" : mac ? "Press ⌘C" : "Press Ctrl+C";
+              btn.classList.toggle("done", ok);
+              btn.setAttribute("aria-label", ok ? "Copied" : "Copy failed");
+              status.textContent = ok ? "Copied to clipboard" : "Copy failed";
+              timer = setTimeout(function () {
+                btn.textContent = label;
+                btn.classList.remove("done");
+                btn.setAttribute("aria-label", aria);
+                status.textContent = "";
+              }, 1500);
+            });
+          });
+        });
+
+        // The small-screen menu closes on Escape (returning focus to its button), on a link and on an outside click.
+        var menu = document.querySelector(".menu");
+        if (menu) {
+          var summary = menu.querySelector("summary");
+          document.addEventListener("keydown", function (e) {
+            if (e.key === "Escape" && menu.open) {
+              menu.open = false;
+              summary.focus();
+            }
+          });
+          menu.addEventListener("click", function (e) {
+            if (e.target.closest("a")) menu.open = false;
+          });
+          document.addEventListener("click", function (e) {
+            if (menu.open && !menu.contains(e.target)) menu.open = false;
+          });
+        }
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,27 @@
+# IT Snow
+
+> Work your ServiceNow tickets from Claude, through the Okta session you already have. No API account, no OAuth client, no admin ticket. A Claude Desktop extension for macOS, version 0.3.0.
+
+## Install (agents)
+
+Continue only if `uname -s` prints `Darwin` and `/Applications/Google Chrome.app` exists. Otherwise tell the user what is missing.
+
+Run the installer with this one command. It downloads the release, checks its SHA-256 (nothing runs before the check passes) and installs it. With no terminal it never prompts and answers no to every question. It exits non-zero, with the reason on stderr, if anything fails.
+
+```bash
+curl -fsSL https://wpp-jamie-mills.github.io/it-snow-site/install.sh | IT_SNOW_INSTALL_TTY=/dev/null bash -s -- --no-wait
+```
+
+### Updates
+
+The extension keeps itself up to date. Once a day it checks this site for a newer version, and when there is one Claude shows the user an update card in Claude Desktop. Update now downloads the new version, checks its SHA-256 and opens Claude Desktop's install dialog; it is installed only when the user clicks Install there. Not now hides that version for a week. You can't click these for the user, and nothing installs until they do. To update straight away, run the same install command again (the user still clicks Install).
+
+### Verify
+
+Run the installer again with `--status` (after `bash -s --`). It should print `Chrome: present` and either the signed-in user or `Next: sign in` from the chat.
+
+## Links
+
+- [Landing page](https://wpp-jamie-mills.github.io/it-snow-site/): install guides for people and agents
+- [Summary](https://wpp-jamie-mills.github.io/it-snow-site/summary.md): this project as one markdown page
+- [Installer](https://wpp-jamie-mills.github.io/it-snow-site/install.sh): the script the install command runs
