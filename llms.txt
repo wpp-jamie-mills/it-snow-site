@@ -1,0 +1,136 @@
+# IT Snow
+
+> Work your ServiceNow tickets from Claude, through the Okta session you already have. No API account, no OAuth client, no admin ticket. A Claude Desktop extension (.mcpb) for macOS, version 0.6.1. Where an organisation blocks the extension, the same release runs as a Claude Desktop mcpServers entry (see "Install as an mcpServers entry").
+
+These steps are for an AI agent installing this for someone. Ask the user, and act only on their answers. Never ask for a password or a token: nothing in the install needs one.
+
+Run every installer command exactly as shown, starting with `set -o pipefail;`: without it, a download that fails still exits 0. Empty output, or only a `curl: (N) …` line, means nothing ran. A `Next:` line may show an installer command, without `set -o pipefail;` or in the form for people: don't run it as shown, but run the matching command from these steps instead.
+
+## Install (agents)
+
+1. Continue only if `uname -s` prints `Darwin` and both `/Applications/Claude.app` and `/Applications/Google Chrome.app` exist. Otherwise tell the user what is missing.
+2. Run the installer with this one command. It downloads the extension, checks its SHA-256 (nothing changes before the check passes) and opens Claude Desktop's install dialog. With no terminal it never prompts and answers no to every question, and `--no-wait` makes it exit once the dialog is open. Exit 0 means it finished its steps, not that Claude Desktop installed the extension. Exit 1 means it stopped, with the reason on stderr. If the reason is that the user's organisation blocks the extension ("… but your organisation blocks it"), switching it on can't help: ask the user, then follow the steps for the mcpServers entry below.
+
+```bash
+set -o pipefail; curl -fsSL https://wpp-jamie-mills.github.io/it-snow-site/install.sh | IT_SNOW_INSTALL_TTY=/dev/null bash -s -- --no-wait
+```
+
+3. Ask the user to click Install in the dialog Claude Desktop opened. You can't do it for them.
+
+### Write tools
+
+Filing an incident, commenting and resolving work, each a dry run until confirmed. The extra write tools (approvals, catalog orders, record patches and raw API writes) start off. Only the user turns them on, with Enable extra write tools in the extension's settings (Settings > Extensions > IT Snow), or, for the mcpServers entry, on its settings card (`now_settings`). Never change a setting for them.
+
+### Updates
+
+The extension keeps itself up to date. Once a day it checks this site for a newer version, and when there is one Claude shows the user an update card in Claude Desktop. Update now downloads the new version, checks its SHA-256 and opens Claude Desktop's install dialog; it is installed only when the user clicks Install there. Not now hides that version for a week. You can't click these for the user, and nothing installs until they do. To update straight away, run the same install command again (the user still clicks Install).
+
+### Verify
+
+Run the installer again with `--status`. It changes nothing:
+
+```bash
+set -o pipefail; curl -fsSL https://wpp-jamie-mills.github.io/it-snow-site/install.sh | IT_SNOW_INSTALL_TTY=/dev/null bash -s -- --status
+```
+
+It should print `Ready: yes`; otherwise its `Next:` line says the one thing left to do: tell the user, then check again. It doesn't say who is signed in. When it is ready, ask the user to start a new chat in Claude Desktop (a chat opened before the extension was on never sees its tools) and ask "am I signed in to ServiceNow?". The first time, IT Snow's own Chrome window opens on the ServiceNow portal, and only the user can sign in with Okta there. If its `claude_extension_state:` line says `blocked` (Claude Desktop shows "Extension is not approved for your organization"), switching it on can't help: follow "Install as an mcpServers entry" below.
+
+## Install as an mcpServers entry (when the organisation blocks the extension)
+
+These steps are for an AI agent installing the entry for someone, not for people. Without a terminal the installer asks nothing, so you ask the user, and you act only on their answers. Never ask for a password or a token: nothing here needs one.
+
+Run every installer command exactly as shown here, starting with `set -o pipefail;`. Without it, a download that fails still exits 0. Empty output, or only a `curl: (N) …` line, means nothing ran: tell the user, and try again later. A `Next:` line, or a refusal, may show an installer command, without `set -o pipefail;` or in the form for people. Don't run it as shown: run the matching command from these steps, with only the flags the user agreed to.
+
+1. Run `set -o pipefail; curl -fsSL https://wpp-jamie-mills.github.io/it-snow-site/install.sh | IT_SNOW_INSTALL_TTY=/dev/null bash -s -- --status`. It changes nothing. Continue only if its `claude_extension_state:` line says `blocked` (Claude Desktop shows "Extension is not approved for your organization"), or the user asks for the entry. If its `chrome:` line says `missing`, ask the user to install Google Chrome first: IT Snow signs in through it either way.
+2. Read the `bun:` line. It shows where Bun is and its version, or says `not installed` and how the installer would install it. If Bun is not installed, ask the user whether you may install it, and say how: with Homebrew on an Apple silicon Mac that has it (`brew install bun`), otherwise Bun 1.4.4 from Bun's own GitHub release, checked against a SHA-256 pinned in the installer, into `~/.bun/bin` (shell profiles aren't changed, and a Bun that is already there is never replaced). Add `--install-bun` only if they agree, and never install Bun any other way. If they say no, stop: the entry can't run without Bun. If the line shows a Bun older than 1.3.0, the installer stops with exit 1 and says how to update it (`brew upgrade bun`, or `<that bun> upgrade`): ask the user before you update Bun, and never do it unasked.
+3. Ask the user whether the installer may add the `it-snow` entry to Claude Desktop's `claude_desktop_config.json`. It keeps a backup, and every other entry and setting in the file. If the `entry:` line says `Claude Desktop's it-snow entry runs something else`, say that this entry will be pointed at the IT Snow release instead (its `env` settings are kept). `--yes` stands for this go-ahead, and only this. If the `entry:` line says `Claude Desktop's config can't be read as JSON`, stop and tell the user: the installer doesn't change a file it can't read.
+
+Then run this, adding `--install-bun` if the user agreed to install Bun:
+
+```bash
+set -o pipefail; curl -fsSL https://wpp-jamie-mills.github.io/it-snow-site/install.sh | IT_SNOW_INSTALL_TTY=/dev/null bash -s -- --entry --yes --no-wait
+```
+
+It checks everything before it changes anything. Exit 0 means it finished its steps (the release installed, the entry added or pointed), not that Claude Desktop runs the entry yet. Exit 1 means it stopped, with the reason on stderr. Without Bun and without `--install-bun`, or without `--yes`, it prints "Nothing was changed" and the flag that is missing: add that flag to the command above only with the user's go-ahead. Any other non-zero exit, with a `curl: (N) …` line, means the download failed and nothing ran. If it says `brew install bun failed`, stop and tell the user: they install Bun themselves (https://bun.sh, 1.3.0 or later), then you run the command again.
+
+Ask the user to quit Claude Desktop (⌘Q) and open it again: it reads its config only when it starts. Never quit it yourself: you may be running inside it. If you are, hand over now and do the check below in the new chat.
+
+Then run the `--status` command again. It should print `Ready: yes`, an `entry_server: running since …` line, and `entry: release X.Y.Z, in Claude Desktop's config as it-snow`, where X.Y.Z is the version on its `latest:` line, with no `update:` line. Otherwise do what its `Next:` line says, with the commands from these steps. Then ask the user to start a new chat in Claude Desktop (a chat opened before the entry ran never gets its tools) and ask "am I signed in to ServiceNow?". The first time, IT Snow's own Chrome window opens on the ServiceNow portal, and only the user can sign in with Okta there.
+
+What the installer does: with `--install-bun` and no Bun, it installs Bun as above. It downloads the same release as the extension (`latest.mcpb`) and checks its SHA-256, then runs that release's own installer, which installs it in `~/Library/Application Support/it-snow/server`. It then adds the `it-snow` entry to `~/Library/Application Support/Claude/claude_desktop_config.json`: a backup first, every other key, the keys' order, non-ASCII text and the file's permissions kept, an existing entry's `env` kept, and a file it can't read as JSON left alone. As with any JSON tool, a key made only of digits moves to the front and a number too long for JavaScript is rounded, and `--entry --uninstall` can leave an empty `"mcpServers": {}`. It never quits Claude Desktop.
+
+- **Settings start at their defaults.** The entry doesn't read the extension's settings; only the sign-in carries over (both use the same Chrome profile). Ask the user whether they changed any setting in the extension (for example Read-only on, or Check for updates off). If they did, they set it again on the entry's settings card (`now_settings`, or ask Claude to "show my IT Snow settings").
+- **Write tools:** filing an incident, commenting and resolving work as in the extension. The extra write tools (approvals, catalog orders, record patches and raw API writes) start off. Only the user turns them on, on the settings card: never change a setting for them.
+- **Approvals** are "In the chat" by default, as in the extension. Nothing on the server asks the user: each write is a dry run until it is called with `confirm: true`, and Claude Desktop may show its own permission prompt. Show the user the dry run, and confirm only what they agreed to. With **Approvals** set to "On an approval card", each change also waits for the user on a card.
+- **Updates:** the update card's **Update now** installs the new release beside the running one, with no Claude Desktop dialog; the user then quits and reopens Claude Desktop to start it. You can't click the card for them. Running the `--entry` command above again also updates.
+- **Settings in the entry's `env`** win and are locked on the settings card: `IT_SNOW_CHECK_UPDATES`, `IT_SNOW_EXTRA_WRITES`, `IT_SNOW_READONLY` and `IT_SNOW_APPROVALS`. None is a secret. Otherwise the card saves settings in `~/Library/Application Support/it-snow/settings.json`.
+- **Tools missing from the chat:** Claude Desktop keeps tool permissions by connector name, so an earlier connector called `it-snow` can hide some tools. Ask the user to open Customize > Connectors > `it-snow` and set the tool groups to Needs approval or Always allow.
+- **Remove,** with the user's go-ahead: `set -o pipefail; curl -fsSL https://wpp-jamie-mills.github.io/it-snow-site/install.sh | IT_SNOW_INSTALL_TTY=/dev/null bash -s -- --entry --uninstall --yes`. It removes the entry (keeping a backup) and the installed release. It keeps the folder `~/Library/Application Support/it-snow` (sign-in, settings, `writes.jsonl`), the download folder `~/.it-snow-server`, the backups of `claude_desktop_config.json` (`.bak-…` beside it) and Bun: delete those only if the user asks. The user then quits and reopens Claude Desktop.
+
+## Tools
+
+Every tool the server has, in the extension and in the mcpServers entry. With the default settings, Claude can call 30 of them in the extension: the read tools, the write tools, `now_login` and `check_for_updates`. ✅ = enabled write, 🔒 = refused until you turn on **Enable extra write tools**. **Card only** tools are called by a card's buttons, and Claude Desktop doesn't offer them to Claude.
+
+**Read**
+
+| Tool | What it does |
+| --- | --- |
+| `now_status` | Session state, Chrome presence, signed-in user |
+| `now_whoami` | Your ServiceNow profile |
+| `now_query` | Structured query: filters, ordering, fields, paging |
+| `now_count` | Aggregate count, optionally grouped |
+| `now_get_record` | One record, or up to 50 in one call, by number or `sys_id`; the table is inferred from the prefix |
+| `now_search` | Full-text search across tasks |
+| `now_my_requests` | Catalog requests (`scope=caller\|opened\|watching\|assigned\|all`) |
+| `now_my_items` | Requested items / RITMs (`scope`) |
+| `now_my_incidents` | Incidents you called in, opened, watch or are assigned (`scope`) |
+| `now_my_approvals` | Approvals waiting on you |
+| `now_my_open_work` | Open incidents, requests, RITMs and approvals in one answer (scope-aware) |
+| `now_request_details` | A request with its RITMs, approvals and comments |
+| `now_comments` | Journal: Additional comments and Work notes |
+| `now_attachments` | Files on a record |
+| `now_attachment_get` | Download one file |
+| `now_kb_search` | Search knowledge articles |
+| `now_kb_article` | Read one article |
+| `now_catalog_search` | Find catalog items |
+| `now_catalog_item` | Item plus its variables |
+| `now_find_person` | User by name, email or username |
+| `now_my_assets` | Hardware assigned to you |
+
+**Write**
+
+| Tool | What it does |
+| --- | --- |
+| `now_add_comment` ✅ | Append an Additional comment |
+| `now_create_incident` ✅ | File an incident through a portal form; Description filled, result checked |
+| `now_resolve_incident` ✅ | Resolve with close code and notes |
+| `now_update_record` 🔒 | Patch any record |
+| `now_approve` 🔒 | Approve or reject |
+| `now_order_catalog_item` 🔒 | Place a catalog order, or submit a record producer |
+| `now_api` 🔒 | Raw `/api/...` escape hatch |
+
+**Sign-in, updates and settings**
+
+| Tool | What it does |
+| --- | --- |
+| `now_login` | Sign-in card (opens Chrome on the portal) |
+| `now_login_start` | Card only: the sign-in card's button, which opens Chrome on the portal |
+| `now_login_status` | Card only: the sign-in card checks whether the sign-in has completed |
+| `check_for_updates` | Only with **Check for updates** on: shows the update card |
+| `install_update` | Card only, with **Check for updates** on: downloads and verifies the new version, then opens Claude Desktop's installer (the extension) or installs it beside the running one (the entry) |
+| `snooze_update` | Card only, with **Check for updates** on: doesn't offer this version for a week |
+| `now_settings` | The mcpServers entry only: the settings card (Check for updates, Enable extra write tools, Read-only, Approvals) |
+| `now_save_settings` | The mcpServers entry only. Card only: saves the settings card |
+
+**Approval cards** (the mcpServers entry only, with **Approvals** set to "On an approval card")
+
+| Tool | What it does |
+| --- | --- |
+| `now_approve_held_write` | Card only: the approval card's Approve, which runs the change you approved |
+| `now_decline_held_write` | Card only: the approval card's Decline, which drops the change |
+
+## Links
+
+- [Landing page](https://wpp-jamie-mills.github.io/it-snow-site/): install guides for people and agents
+- [Summary](https://wpp-jamie-mills.github.io/it-snow-site/summary.md): this project as one markdown page
+- [Installer](https://wpp-jamie-mills.github.io/it-snow-site/install.sh): the script the install command runs
